@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GGStats — система аналітики для Dota 2 та CS2." />
+  <title>GGStats — Аналітика Dota 2 &amp; CS2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-bg: #080c14; --color-bg-card: #0d1422; --color-bg-input: #111827;
+      --color-border: #1e2d45; --color-text: #c9d8f0; --color-text-muted: #5a7a9e;
+      --color-primary: #00d4ff; --color-primary-dim: #0a4a5c;
+      --color-accent-dota: #e84040; --color-accent-cs: #f5a623;
+      --color-success: #22c55e; --color-error: #ef4444;
+      --color-error-dim: #3b1212; --color-success-dim: #0d2e1a;
+      --font-display: 'Orbitron', monospace; --font-main: 'Rajdhani', sans-serif;
+      --font-size-xs: .75rem; --font-size-sm: .875rem; --font-size-md: 1rem;
+      --font-size-lg: 1.25rem; --font-size-xl: 1.5rem;
+      --font-size-2xl: 2rem; --font-size-3xl: 2.75rem;
+      --spacing-xs: 4px; --spacing-sm: 8px; --spacing-md: 16px;
+      --spacing-lg: 24px; --spacing-xl: 40px; --spacing-2xl: 64px;
+      --border-radius-sm: 4px; --border-radius: 8px; --border-radius-lg: 16px;
+      --glow-primary: 0 0 18px rgba(0,212,255,.35);
+      --transition: .2s ease;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--color-bg);color:var(--color-text);font-family:var(--font-main);font-size:var(--font-size-md);line-height:1.6;min-height:100vh}
+    img{max-width:100%;display:block}
+    a{color:var(--color-primary);text-decoration:none;transition:color var(--transition)}
+    a:hover{color:#fff}
+    .skip-link{position:absolute;top:-100%;left:var(--spacing-md);background:var(--color-primary);color:var(--color-bg);padding:var(--spacing-sm) var(--spacing-md);border-radius:var(--border-radius);font-weight:700;font-family:var(--font-display);z-index:9999;transition:top var(--transition)}
+    .skip-link:focus{top:var(--spacing-md)}
+    :focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--border-radius-sm)}
+    .site-header{position:sticky;top:0;z-index:100;background:rgba(8,12,20,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--color-border);padding:0 var(--spacing-xl)}
+    .header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;gap:var(--spacing-lg)}
+    .logo{font-family:var(--font-display);font-size:var(--font-size-xl);font-weight:900;color:#fff;letter-spacing:2px;display:flex;align-items:center;gap:var(--spacing-sm)}
+    .logo span{color:var(--color-primary)}
+    .site-nav{display:flex;align-items:center;gap:var(--spacing-xs)}
+    .nav-link{color:var(--color-text-muted);font-family:var(--font-display);font-size:var(--font-size-xs);font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:var(--spacing-sm) var(--spacing-md);border-radius:var(--border-radius);transition:color var(--transition),background var(--transition)}
+    .nav-link:hover,.nav-link[aria-current="page"]{color:var(--color-primary);background:var(--color-primary-dim)}
+    .nav-cta{margin-left:var(--spacing-sm);background:var(--color-primary);color:var(--color-bg)!important;font-family:var(--font-display);font-size:var(--font-size-xs);font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:var(--spacing-sm) var(--spacing-md);border-radius:var(--border-radius);transition:box-shadow var(--transition),transform var(--transition)}
+    .nav-cta:hover{box-shadow:var(--glow-primary);transform:translateY(-1px)}
+    .hero{max-width:1280px;margin:0 auto;padding:var(--spacing-2xl) var(--spacing-xl);display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-xl);align-items:center}
+    .hero-eyebrow{font-family:var(--font-display);font-size:var(--font-size-xs);letter-spacing:3px;color:var(--color-primary);text-transform:uppercase;margin-bottom:var(--spacing-md)}
+    .hero h1{font-family:var(--font-display);font-size:var(--font-size-3xl);font-weight:900;line-height:1.1;color:#fff;margin-bottom:var(--spacing-lg)}
+    .hero h1 .accent-dota{color:var(--color-accent-dota)}
+    .hero h1 .accent-cs{color:var(--color-accent-cs)}
+    .hero-desc{color:var(--color-text-muted);font-size:var(--font-size-lg);margin-bottom:var(--spacing-xl);max-width:480px}
+    .hero-stats{display:flex;gap:var(--spacing-xl)}
+    .stat-block{display:flex;flex-direction:column}
+    .stat-number{font-family:var(--font-display);font-size:var(--font-size-2xl);font-weight:900;color:var(--color-primary)}
+    .stat-label{font-size:var(--font-size-sm);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:1px}
+    .hero-visual{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md)}
+    .game-card{background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:var(--border-radius-lg);overflow:hidden;transition:border-color var(--transition),box-shadow var(--transition),transform var(--transition)}
+    .game-card:hover{transform:translateY(-4px);border-color:var(--color-primary);box-shadow:var(--glow-primary)}
+    .game-card-banner{height:120px;overflow:hidden}
+    .game-card-banner img{width:100%;height:100%;object-fit:cover}
+    .game-card-body{padding:var(--spacing-md)}
+    .game-card-title{font-family:var(--font-display);font-size:var(--font-size-sm);font-weight:700;color:#fff;margin-bottom:var(--spacing-xs)}
+    .game-card-meta{font-size:var(--font-size-xs);color:var(--color-text-muted)}
+    .badge{display:inline-block;padding:2px var(--spacing-sm);border-radius:var(--border-radius-sm);font-family:var(--font-display);font-size:var(--font-size-xs);font-weight:700}
+    .badge--dota{background:rgba(232,64,64,.2);color:var(--color-accent-dota)}
+    .badge--cs{background:rgba(245,166,35,.2);color:var(--color-accent-cs)}
+    .content-wrapper{max-width:1280px;margin:0 auto;padding:0 var(--spacing-xl) var(--spacing-2xl);display:grid;grid-template-columns:1fr 300px;gap:var(--spacing-xl)}
+    .section-title{font-family:var(--font-display);font-size:var(--font-size-xl);font-weight:700;color:#fff;margin-bottom:var(--spacing-lg);display:flex;align-items:center;gap:var(--spacing-sm)}
+    .section-title::before{content:'';display:block;width:4px;height:1.2em;background:var(--color-primary);border-radius:2px}
+    .matches-grid{display:flex;flex-direction:column;gap:var(--spacing-sm)}
+    .match-row{background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:var(--border-radius);padding:var(--spacing-md);display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:var(--spacing-md);transition:border-color var(--transition)}
+    .match-row:hover{border-color:var(--color-text-muted)}
+    .match-result{font-family:var(--font-display);font-size:var(--font-size-sm);font-weight:900;width:36px;text-align:center}
+    .match-result--win{color:var(--color-success)}
+    .match-result--loss{color:var(--color-error)}
+    .match-info{display:flex;flex-direction:column;gap:2px}
+    .match-name{font-weight:600;color:#fff}
+    .match-meta{font-size:var(--font-size-xs);color:var(--color-text-muted)}
+    .match-kda{font-family:var(--font-display);font-size:var(--font-size-sm);color:var(--color-primary);text-align:right}
+    .match-duration{font-size:var(--font-size-xs);color:var(--color-text-muted)}
+    .sidebar{display:flex;flex-direction:column;gap:var(--spacing-lg)}
+    .sidebar-widget{background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:var(--border-radius-lg);padding:var(--spacing-lg)}
+    .widget-title{font-family:var(--font-display);font-size:var(--font-size-sm);font-weight:700;letter-spacing:1px;color:var(--color-text-muted);text-transform:uppercase;margin-bottom:var(--spacing-md)}
+    .leaderboard-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:var(--spacing-sm) 0;border-bottom:1px solid var(--color-border)}
+    .leaderboard-item:last-child{border-bottom:none}
+    .lb-rank{font-family:var(--font-display);font-size:var(--font-size-xs);color:var(--color-text-muted);width:20px}
+    .lb-name{flex:1;font-weight:600}
+    .lb-score{font-family:var(--font-display);font-size:var(--font-size-sm);color:var(--color-primary)}
+    .forms-section{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-xl);margin-top:var(--spacing-xl)}
+    .form-card{background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:var(--border-radius-lg);padding:var(--spacing-xl)}
+    .form-card h2{font-family:var(--font-display);font-size:var(--font-size-xl);font-weight:700;color:#fff;margin-bottom:var(--spacing-xs)}
+    .form-subtitle{color:var(--color-text-muted);font-size:var(--font-size-sm);margin-bottom:var(--spacing-xl)}
+    .form-group{display:flex;flex-direction:column;gap:var(--spacing-xs);margin-bottom:var(--spacing-md)}
+    .form-label{font-family:var(--font-display);font-size:var(--font-size-xs);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--color-text-muted)}
+    .required-mark{color:var(--color-error);margin-left:2px}
+    .form-input,.form-select{background:var(--color-bg-input);border:1.5px solid var(--color-border);border-radius:var(--border-radius);color:var(--color-text);font-family:var(--font-main);font-size:var(--font-size-md);padding:var(--spacing-sm) var(--spacing-md);width:100%;transition:border-color var(--transition),box-shadow var(--transition),background var(--transition);outline:none}
+    .form-input::placeholder{color:var(--color-text-muted);opacity:1}
+    .form-input:focus,.form-select:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(0,212,255,.15)}
+    .form-input:not(:placeholder-shown):valid{border-color:var(--color-success);background:var(--color-success-dim)}
+    .form-input:not(:placeholder-shown):invalid{border-color:var(--color-error);background:var(--color-error-dim)}
+    .form-hint{font-size:var(--font-size-xs);color:var(--color-text-muted);min-height:16px;transition:color var(--transition)}
+    .form-input:not(:placeholder-shown):invalid~.form-hint{color:var(--color-error)}
+    .form-input:not(:placeholder-shown):valid~.form-hint{color:var(--color-success)}
+    .input-wrapper{position:relative}
+    .input-wrapper .status-icon{position:absolute;right:var(--spacing-md);top:50%;transform:translateY(-50%);pointer-events:none;opacity:0;transition:opacity var(--transition)}
+    .form-input:not(:placeholder-shown):valid+.status-icon.ok{opacity:1;color:var(--color-success)}
+    .form-input:not(:placeholder-shown):invalid+.status-icon.err{opacity:1;color:var(--color-error)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--spacing-sm);padding:var(--spacing-md) var(--spacing-xl);border-radius:var(--border-radius);border:none;cursor:pointer;font-family:var(--font-display);font-size:var(--font-size-sm);font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:box-shadow var(--transition),transform var(--transition);width:100%;margin-top:var(--spacing-sm)}
+    .btn:focus-visible{outline:2px solid var(--color-primary);outline-offset:3px}
+    .btn--primary{background:var(--color-primary);color:var(--color-bg)}
+    .btn--primary:hover{box-shadow:var(--glow-primary);transform:translateY(-2px)}
+    .btn--dota{background:var(--color-accent-dota);color:#fff}
+    .btn--dota:hover{box-shadow:0 0 18px rgba(232,64,64,.45);transform:translateY(-2px)}
+    .form-check{display:flex;align-items:flex-start;gap:var(--spacing-sm);cursor:pointer;margin-top:var(--spacing-sm)}
+    .form-check input[type="checkbox"]{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:var(--color-primary);cursor:pointer}
+    .form-check-label{font-size:var(--font-size-sm);color:var(--color-text-muted);cursor:pointer;line-height:1.4}
+    .site-footer{border-top:1px solid var(--color-border);background:var(--color-bg-card);padding:var(--spacing-xl)}
+    .footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:var(--spacing-xl);margin-bottom:var(--spacing-xl)}
+    .footer-brand .logo{margin-bottom:var(--spacing-md)}
+    .footer-brand p{font-size:var(--font-size-sm);color:var(--color-text-muted);max-width:260px;line-height:1.7}
+    .footer-col h3{font-family:var(--font-display);font-size:var(--font-size-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:var(--spacing-md)}
+    .footer-col ul{list-style:none;display:flex;flex-direction:column;gap:var(--spacing-sm)}
+    .footer-col li a{font-size:var(--font-size-sm);color:var(--color-text-muted);transition:color var(--transition)}
+    .footer-col li a:hover{color:var(--color-primary)}
+    .footer-bottom{max-width:1280px;margin:0 auto;border-top:1px solid var(--color-border);padding-top:var(--spacing-lg);display:flex;justify-content:space-between;align-items:center;font-size:var(--font-size-xs);color:var(--color-text-muted)}
+    .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-width:1024px){.hero{grid-template-columns:1fr}.hero-visual{display:none}.content-wrapper{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr 1fr}}
+    @media(max-width:768px){.site-header{padding:0 var(--spacing-md)}.hero{padding:var(--spacing-xl) var(--spacing-md)}.content-wrapper{padding:0 var(--spacing-md) var(--spacing-xl)}.forms-section{grid-template-columns:1fr}.nav-link{display:none}.footer-inner{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Перейти до основного вмісту</a>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <a href="/" class="logo" aria-label="GGStats — головна сторінка">GG<span>Stats</span></a>
+      <nav class="site-nav" aria-label="Основна навігація">
+        <a href="#overview" class="nav-link" aria-current="page">Огляд</a>
+        <a href="#matches" class="nav-link">Матчі</a>
+        <a href="#analytics" class="nav-link">Аналітика</a>
+        <a href="#register" class="nav-cta">Реєстрація</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="overview" aria-labelledby="hero-heading">
+      <div class="hero-content">
+        <p class="hero-eyebrow" aria-hidden="true">Аналітика · Dota 2 &amp; CS2</p>
+        <h1 id="hero-heading">
+          Підкори рейтинг.<br>
+          Аналізуй <span class="accent-dota">Dota 2</span><br>
+          та <span class="accent-cs">CS2</span> з даними.
+        </h1>
+        <p class="hero-desc">Детальна статистика матчів, відстеження прогресу та порівняння з гравцями твого рейтингу — все в одному місці.</p>
+        <div class="hero-stats" role="list" aria-label="Статистика платформи">
+          <div class="stat-block" role="listitem"><span class="stat-number">2.4M</span><span class="stat-label">Гравців</span></div>
+          <div class="stat-block" role="listitem"><span class="stat-number">850K</span><span class="stat-label">Матчів/день</span></div>
+          <div class="stat-block" role="listitem"><span class="stat-number">99.9%</span><span class="stat-label">Uptime</span></div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-label="Підтримувані ігри">
+        <article class="game-card" aria-labelledby="dota-card-title">
+          <div class="game-card-banner">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Dota_2_logo_%282022%29.svg/320px-Dota_2_logo_%282022%29.svg.png"
+              alt="Логотип Dota 2 — командна стратегічна гра жанру MOBA" width="320" height="120"
+              style="object-fit:contain;background:#0f1b2d;padding:16px;width:100%;height:100%" />
+          </div>
+          <div class="game-card-body">
+            <h2 id="dota-card-title" class="game-card-title">Dota 2</h2>
+            <p class="game-card-meta"><span class="badge badge--dota">MOBA</span>&nbsp;12 млн матчів</p>
+          </div>
+        </article>
+        <article class="game-card" aria-labelledby="cs-card-title">
+          <div class="game-card-banner">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/CS2_Logo.svg/320px-CS2_Logo.svg.png"
+              alt="Логотип Counter-Strike 2 — тактичний шутер від першої особи" width="320" height="120"
+              style="object-fit:contain;background:#0f1b2d;padding:16px;width:100%;height:100%" />
+          </div>
+          <div class="game-card-body">
+            <h2 id="cs-card-title" class="game-card-title">CS2</h2>
+            <p class="game-card-meta"><span class="badge badge--cs">FPS</span>&nbsp;8 млн матчів</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="content-wrapper">
+      <section id="matches" aria-labelledby="matches-heading">
+        <h2 id="matches-heading" class="section-title">Останні матчі</h2>
+        <div class="matches-grid" role="list" aria-label="Список останніх матчів">
+          <article class="match-row" role="listitem" aria-label="Dota 2 Ranked — Перемога">
+            <span class="match-result match-result--win" aria-label="Перемога">WIN</span>
+            <div class="match-info"><span class="match-name">Dota 2 · Ranked</span><span class="match-meta">Антімейдж · Radiant · 2 год тому</span></div>
+            <div class="match-kda" aria-label="K/D/A: 14-3-7">14 / 3 / 7</div>
+            <span class="match-duration">38:24</span>
+          </article>
+          <article class="match-row" role="listitem" aria-label="CS2 Premier — Поразка">
+            <span class="match-result match-result--loss" aria-label="Поразка">LOSS</span>
+            <div class="match-info"><span class="match-name">CS2 · Premier</span><span class="match-meta">Inferno · 14-16 · 5 год тому</span></div>
+            <div class="match-kda" aria-label="K/D/A: 22-18-4">22 / 18 / 4</div>
+            <span class="match-duration">41:07</span>
+          </article>
+          <article class="match-row" role="listitem" aria-label="Dota 2 Ranked — Перемога">
+            <span class="match-result match-result--win" aria-label="Перемога">WIN</span>
+            <div class="match-info"><span class="match-name">Dota 2 · Ranked</span><span class="match-meta">Інвокер · Dire · 8 год тому</span></div>
+            <div class="match-kda" aria-label="K/D/A: 9-5-18">9 / 5 / 18</div>
+            <span class="match-duration">54:11</span>
+          </article>
+          <article class="match-row" role="listitem" aria-label="CS2 Competitive — Перемога">
+            <span class="match-result match-result--win" aria-label="Перемога">WIN</span>
+            <div class="match-info"><span class="match-name">CS2 · Competitive</span><span class="match-meta">Mirage · 16-9 · Вчора</span></div>
+            <div class="match-kda" aria-label="K/D/A: 28-12-6">28 / 12 / 6</div>
+            <span class="match-duration">32:45</span>
+          </article>
+        </div>
+      </section>
+
+      <aside aria-label="Рейтинг та реклама">
+        <div class="sidebar">
+          <section class="sidebar-widget" aria-labelledby="lb-heading">
+            <h2 id="lb-heading" class="widget-title">Топ гравці тижня</h2>
+            <ol aria-label="Рейтинг гравців">
+              <li class="leaderboard-item"><span class="lb-rank" aria-label="1 місце">1.</span><span class="lb-name">N0tail</span><span class="lb-score">9 840</span></li>
+              <li class="leaderboard-item"><span class="lb-rank" aria-label="2 місце">2.</span><span class="lb-name">s1mple</span><span class="lb-score">9 710</span></li>
+              <li class="leaderboard-item"><span class="lb-rank" aria-label="3 місце">3.</span><span class="lb-name">GH_Dota</span><span class="lb-score">9 600</span></li>
+              <li class="leaderboard-item"><span class="lb-rank" aria-label="4 місце">4.</span><span class="lb-name">ZywOo</span><span class="lb-score">9 540</span></li>
+            </ol>
+          </section>
+          <aside class="sidebar-widget" aria-label="Pro-план промо">
+            <h2 class="widget-title">Pro Plan</h2>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-bottom:var(--spacing-md);">Розширена аналітика, AI-підбір команди та необмежена історія матчів.</p>
+            <a href="#register" class="btn btn--primary" style="font-size:var(--font-size-xs);display:block;text-align:center;padding:var(--spacing-sm);margin-top:0">Спробувати безкоштовно</a>
+          </aside>
+        </div>
+      </aside>
+
+      <section class="forms-section" id="register" aria-labelledby="forms-section-heading">
+        <h2 id="forms-section-heading" class="visually-hidden">Реєстрація та аналіз профілю</h2>
+
+        <!-- ФОРМА 1: Реєстрація -->
+        <div class="form-card">
+          <h2>Реєстрація</h2>
+          <p class="form-subtitle">Створи профіль та підключи Steam-акаунт</p>
+          <form action="#" method="get" onsubmit="handleSubmit(event, this)" novalidate aria-label="Форма реєстрації нового гравця">
+            <div class="form-group">
+              <label class="form-label" for="reg-username">Нікнейм<span class="required-mark" aria-hidden="true"> *</span></label>
+              <div class="input-wrapper">
+                <input class="form-input" type="text" id="reg-username" name="username"
+                  placeholder="SuperPlayer2025" required minlength="3" maxlength="20"
+                  pattern="^[a-zA-Z0-9_\-]{3,20}$" autocomplete="username"
+                  aria-describedby="username-hint" aria-required="true" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="username-hint" role="status" aria-live="polite">Від 3 до 20 символів: латиниця, цифри, _ та -</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-email">Email<span class="required-mark" aria-hidden="true"> *</span></label>
+              <div class="input-wrapper">
+                <input class="form-input" type="email" id="reg-email" name="email"
+                  placeholder="gamer@example.com" required autocomplete="email"
+                  aria-describedby="email-hint" aria-required="true" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="email-hint" role="status" aria-live="polite">Введи дійсну адресу електронної пошти</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-phone">Телефон</label>
+              <div class="input-wrapper">
+                <input class="form-input" type="tel" id="reg-phone" name="phone"
+                  placeholder="+380501234567" pattern="^\+380[0-9]{9}$" autocomplete="tel"
+                  aria-describedby="phone-hint" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="phone-hint" role="status" aria-live="polite">Формат: +380501234567 (необов'язково)</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-password">Пароль<span class="required-mark" aria-hidden="true"> *</span></label>
+              <div class="input-wrapper">
+                <input class="form-input" type="password" id="reg-password" name="password"
+                  placeholder="Мінімум 8 символів" required minlength="8" maxlength="64"
+                  autocomplete="new-password" aria-describedby="password-hint" aria-required="true" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="password-hint" role="status" aria-live="polite">Від 8 до 64 символів</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-game">Основна гра<span class="required-mark" aria-hidden="true"> *</span></label>
+              <select class="form-select" id="reg-game" name="game" required aria-required="true">
+                <option value="" disabled selected>Обери гру</option>
+                <option value="dota2">Dota 2</option>
+                <option value="cs2">CS2</option>
+                <option value="both">Dota 2 + CS2</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-check" for="reg-terms">
+                <input type="checkbox" id="reg-terms" name="terms" required aria-required="true" />
+                <span class="form-check-label">Погоджуюсь з <a href="#">умовами використання</a> та <a href="#">політикою конфіденційності</a><span class="required-mark" aria-hidden="true"> *</span></span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn--primary">Створити акаунт</button>
+          </form>
+        </div>
+
+        <!-- ФОРМА 2: Аналіз профілю -->
+        <div class="form-card">
+          <h2>Аналіз профілю</h2>
+          <p class="form-subtitle">Введи Steam ID або нікнейм для перегляду статистики</p>
+          <form action="#" method="get" onsubmit="handleSubmit(event, this)" aria-label="Форма пошуку та аналізу профілю гравця">
+            <div class="form-group">
+              <label class="form-label" for="search-steamid">Steam ID або нікнейм<span class="required-mark" aria-hidden="true"> *</span></label>
+              <div class="input-wrapper">
+                <input class="form-input" type="text" id="search-steamid" name="steamid"
+                  placeholder="76561198XXXXXXXXX або нікнейм" required minlength="3" maxlength="50"
+                  autocomplete="off" aria-describedby="steamid-hint" aria-required="true" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="steamid-hint" role="status" aria-live="polite">17-значний Steam64 ID або нікнейм (від 3 символів)</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="search-game">Гра для аналізу<span class="required-mark" aria-hidden="true"> *</span></label>
+              <select class="form-select" id="search-game" name="game" required aria-required="true">
+                <option value="" disabled selected>Обери гру</option>
+                <option value="dota2">Dota 2</option>
+                <option value="cs2">CS2</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="search-matches">Кількість матчів</label>
+              <div class="input-wrapper">
+                <input class="form-input" type="number" id="search-matches" name="matches"
+                  placeholder="20" min="5" max="500" aria-describedby="matches-count-hint" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="matches-count-hint" role="status" aria-live="polite">Від 5 до 500 матчів для аналізу</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="search-email">Email для звіту</label>
+              <div class="input-wrapper">
+                <input class="form-input" type="email" id="search-email" name="report_email"
+                  placeholder="gamer@example.com" autocomplete="email" aria-describedby="report-email-hint" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="report-email-hint" role="status" aria-live="polite">Необов'язково — отримай PDF-звіт на пошту</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="search-phone">Телефон для SMS</label>
+              <div class="input-wrapper">
+                <input class="form-input" type="tel" id="search-phone" name="sms_phone"
+                  placeholder="+380661234567" pattern="^\+380[0-9]{9}$" autocomplete="tel"
+                  aria-describedby="sms-phone-hint" />
+                <span class="status-icon ok" aria-hidden="true">✓</span>
+                <span class="status-icon err" aria-hidden="true">✗</span>
+              </div>
+              <span class="form-hint" id="sms-phone-hint" role="status" aria-live="polite">Формат: +380661234567 (необов'язково)</span>
+            </div>
+            <button type="submit" class="btn btn--dota">⚔ Аналізувати профіль</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo" aria-hidden="true">GG<span>Stats</span></div>
+        <p>Платформа аналітики для Dota 2 і CS2. Дані оновлюються в реальному часі на основі відкритих API Steam та Valve.</p>
+      </div>
+      <nav class="footer-col" aria-label="Ігри">
+        <h3>Ігри</h3>
+        <ul><li><a href="#">Dota 2</a></li><li><a href="#">CS2</a></li><li><a href="#">Порівняння</a></li></ul>
+      </nav>
+      <nav class="footer-col" aria-label="Функції">
+        <h3>Функції</h3>
+        <ul><li><a href="#">Матчі</a></li><li><a href="#">Герої</a></li><li><a href="#">Рейтинги</a></li></ul>
+      </nav>
+      <nav class="footer-col" aria-label="Компанія">
+        <h3>Компанія</h3>
+        <ul><li><a href="#">Про нас</a></li><li><a href="#">Умови</a></li><li><a href="#">Конфіденційність</a></li></ul>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 GGStats. Не є офіційним партнером Valve Corporation.</span>
+      <span>Практична робота 1 · Семантика, Доступність, Форми</span>
+    </div>
+  </footer>
+
+  <script>
+    function handleSubmit(e, form) {
+      e.preventDefault();
+      var isValid = form.checkValidity();
+      if (!isValid) {
+        form.reportValidity();
+        return;
+      }
+      var msg = document.createElement('div');
+      msg.style.cssText = 'margin-top:16px;padding:16px;background:#0d2e1a;border:1px solid #22c55e;border-radius:8px;color:#22c55e;font-family:Orbitron,monospace;font-size:.8rem;letter-spacing:1px;text-align:center;';
+      msg.textContent = '✓ Форму успішно відправлено!';
+      form.parentNode.insertBefore(msg, form.nextSibling);
+      form.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
